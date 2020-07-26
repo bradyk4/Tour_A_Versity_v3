@@ -1,9 +1,11 @@
 package com.example.tour_a_versity_v3
 
+import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.example.tour_a_versity_v3.dto.Buildings
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -11,8 +13,13 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+
+    private lateinit var firestore: FirebaseFirestore
 
     private lateinit var map: GoogleMap
     private lateinit var tucMarker: Marker
@@ -23,6 +30,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
     private lateinit var mcmickenMarker: Marker
     private lateinit var braunsteinMarker: Marker
     private lateinit var daapMarker: Marker
+    private val zoomLevel = 17f
+    private val baseLat = 39.13175
+    private val baseLng = -84.51774
+    private val baseLatLng = LatLng(baseLat, baseLng)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +53,36 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
         this.map = googleMap
         map.mapType = GoogleMap.MAP_TYPE_HYBRID
         map.setOnInfoWindowClickListener(this)
+        //move camera to TUC
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(baseLatLng, zoomLevel))
+        //initialize firestore
+        firestore = FirebaseFirestore.getInstance()
+        firestore.firestoreSettings = FirebaseFirestoreSettings.Builder().build()
+        firestore.collection("buildings").addSnapshotListener{
+                snapshot, e ->
+            // if there is an exception we want to play
+            if (e != null){
+                Log.w(ContentValues.TAG, "Listen Failed", e)
+                return@addSnapshotListener
+            }
+            // if we are here, we did not encounter an exception
+            if (snapshot != null){
+                // now, we have a populated snapshot
+                val documents = snapshot.documents
+                documents.forEach {
 
+                    val building = it.toObject(Buildings::class.java)
+                    if (building != null && building.latitude.isNotEmpty() && building.longitude.isNotEmpty()) {
+                        // building.buildingID = it.id
+                        val marker = LatLng(building.latitude.toDouble(), building.longitude.toDouble())
+                        map.addMarker(MarkerOptions().position(marker).title(building.buildingName).snippet(building.info))
+
+                    }
+                }
+            }
+        }
+
+        /*
         // marker for TUC
         val tucLat = 39.13175
         val tucLng = -84.51774
@@ -96,7 +136,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             .snippet("University of Cincinnati College of Law")
         )
 
-        // marker for McMicken library
+        // marker for McMicken
         val mcmickenLat = 39.131939
         val mcmickenLng = -84.519152
         val mcmickenLatLng = LatLng(mcmickenLat, mcmickenLng)
@@ -126,7 +166,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             .snippet("College of Design, Art, Architecture, and Planning")
         )
 
+         */
+
     }
+
     override fun onInfoWindowClick(p0: Marker?) {
         if (p0 == tucMarker){
             val intent = Intent(this, TUC_Info::class.java)
