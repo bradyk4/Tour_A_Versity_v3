@@ -40,16 +40,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".TUC_Info"
-            android:label="TUCInfo">
+            android:name=".ui.InfoActivity"
+            android:label="Info">
         </activity>
         <activity
-            android:name=".TUC_Photos"
+            android:name=".ui.PhotosActivity"
             android:label="Photos">
-        </activity>
-        <activity
-            android:name=".CECH_Info"
-            android:label="CECHInfo">
         </activity>
     </application>
 
