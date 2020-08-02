@@ -15,8 +15,6 @@ import kotlinx.android.synthetic.main.activity2.*
 class InfoActivity : AppCompatActivity(){
 
     private lateinit var firestore: FirebaseFirestore
-    private lateinit var name: String
-    private lateinit var info: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +53,7 @@ class InfoActivity : AppCompatActivity(){
         val button = findViewById<Button>(R.id.TucPhotoButton)
         button.setOnClickListener {
             val intent = Intent(this, PhotosActivity::class.java)
+            intent.putExtra("ID", bID)
             startActivity(intent)
         }
     }
